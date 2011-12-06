@@ -1,7 +1,7 @@
 <html>
-<head><title>PHP TEST</title></head>
+<head><title>Language Numbers</title></head>
 <body>
-<h3>Spanish Numbers</h3>
+<h3>Language Numbers</h3>
 <?php 
 
 //include 'SpanishNumberizer.php';
@@ -10,13 +10,18 @@ spl_autoload_register(function($classname) {
     include $classname . '.php';
 });
 
+$spanish = new SpanishNumberizer();
+
+/*for ($i=100;$i<100000;$i++) {
+    echo $i . " = " . $spanish->numberToText($i) . "<br/>";
+}*/
 
 if ($_POST) {
     $spanish = new SpanishNumberizer();
-    $japanese = new JapaneseNumberizer();
+    //$japanese = new JapaneseNumberizer();
     $number = (int)$_POST['number'];
     $spanish_number = $spanish->numberToText($number);
-    $japanese_number = $japanese->numberToText($number);
+    //$japanese_number = $japanese->numberToText($number);
 
     echo "<h3>";
     echo $number . " = " . $spanish_number . " = " . $japanese_number;
