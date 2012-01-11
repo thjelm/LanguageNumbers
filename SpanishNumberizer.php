@@ -14,10 +14,19 @@ class SpanishNumberizer extends LanguageNumberizer
         return $this->$language;
     }
     
+    
+    /*
+     * input: a 1-character string containing a digit "0"-"9"
+     * output: a string of that number in Spanish longform
+     */
     private function doOnes($number) {
         return $this->numbers[(int)$number];
     }
     
+    /*
+     * input: a 2-character string containing only digits "0"-"9"
+     * output: a string of that number in Spanish longform
+     */
     private function doTens($number) {
         if ($number[0] == "0") {
             if($number[1] != "0") {
@@ -35,6 +44,10 @@ class SpanishNumberizer extends LanguageNumberizer
         }
     }
     
+    /*
+     * input: a 3-character string containing only digits "0"-"9"
+     * output: a string of that number in Spanish longform
+     */
     private function doHundreds($number) {
         if ($number[0] == "0") {
             return $this->doTens($number[1].$number[2]);
@@ -52,6 +65,10 @@ class SpanishNumberizer extends LanguageNumberizer
         }
     }
     
+    /*
+     * input: an up-to-3-character string containing only digits "0"-"9"
+     * output: a string of that number in Spanish longform.
+     */
     private function doNumber($number) {
         $num = ltrim($number, "0");
         switch(strlen($num)) {
@@ -68,54 +85,58 @@ class SpanishNumberizer extends LanguageNumberizer
     
     
     protected function toText($number) {
+        //first check if it is in our numbers array, which holds exceptions to the rules.
         if (isset($this->numbers[(int)$number])) {
             return $this->numbers[(int)$number];
         } else {
-            //$num = $number;//(string)$number;
-            $len = strlen($number);
 
-            //we want groupings of three starting from the right, so we reverse the string first
+            /*
+             * We want groupings of three starting from the right, 
+             * so we reverse the string first.  Then we split the reversed
+             * string into an array of 3-character strings.
+             *
+             * Ex: 4519224 -> "422", "915", "4"
+             *
+             * Now $groups contains each set of three digits, but 
+             * each set is in reverse order.
+             * The highest index has the most significant digits.
+             * We convert each set of three into Spanish longform by first reversing
+             * it (since it is backwards) and then calling our doNumber() method.
+             */
             $groups = str_split(strrev($number), 3);
             foreach ($groups as $index => $group) {
-                $groups[$index] = strrev($group);
+                $groups[$index] = $this->doNumber(strrev($group));
             }
-            print_r($groups);
-                       
-            //now groups contains each set of three, with the highest index the msd
-            //convert each "group" into Spanish longform.
-            $textgroups = array();
-            foreach ($groups as $index => $value) {
-                $textgroups[$index] = $this->doNumber($value);
-            }
-            print_r($textgroups);
-
-            //start with empty string, and concat from msd to lsd. Notice no breaks.
-            //TODO: use a flag to catch the case "dos mil millones", where we have 0 millones
+            
+            // start with empty string, and concat from msd to lsd. Notice no breaks.
+            //
+            // $flag is there to cover cases like 2000000000 "dos mil millones",
+            // where "000" is the set for "millones", yet it must be written.
             $ret = "";
             $flag = false;
-            switch(count($textgroups)) {
+            switch(count($groups)) {
                 case 5:
-                    if ($textgroups[4] != "cero") {                    
-                        if ($textgroups[4] == "uno") {
+                    if ($groups[4] != "cero") {                    
+                        if ($groups[4] == "uno") {
                             $ret .= "un billón ";
                         } else {
-                            $ret .= $textgroups[4] . " billones ";
+                            $ret .= $groups[4] . " billones ";
                         }
                     }
                 case 4:
-                    if ($textgroups[3] != "cero") {
+                    if ($groups[3] != "cero") {
                         $flag = true;
-                        if ($textgroups[3] != "uno") {
-                            $ret .= $textgroups[3] . " ";
+                        if ($groups[3] != "uno") {
+                            $ret .= $groups[3] . " ";
                         }
                         $ret .= "mil ";
                     }
                 case 3:
-                    if ($textgroups[2] != "cero") {
-                        if ($textgroups[2] == "uno") {
+                    if ($groups[2] != "cero") {
+                        if ($groups[2] == "uno") {
                             $ret .= "un millón ";
                         } else {
-                            $ret .= $textgroups[2] . " millones ";
+                            $ret .= $groups[2] . " millones ";
                         }
                     } else {
                         if ($flag) {
@@ -125,15 +146,15 @@ class SpanishNumberizer extends LanguageNumberizer
                     }
 
                 case 2:
-                    if ($textgroups[1] != "cero") {
-                        if ($textgroups[1] != "uno") {
-                            $ret .= $textgroups[1] . " ";
+                    if ($groups[1] != "cero") {
+                        if ($groups[1] != "uno") {
+                            $ret .= $groups[1] . " ";
                         }
                         $ret .= "mil ";
                     }
                 case 1:
-                    if ($textgroups[0] != "cero") {
-                        $ret .= $textgroups[0];
+                    if ($groups[0] != "cero") {
+                        $ret .= $groups[0];
                     }
             }
             return $ret;
