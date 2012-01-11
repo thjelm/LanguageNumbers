@@ -1,7 +1,5 @@
 <?php
 
-//include 'LanguageNumberizer.php';
-
 class SpanishNumberizer extends LanguageNumberizer
 {
     private $language = "Spanish";
@@ -54,43 +52,91 @@ class SpanishNumberizer extends LanguageNumberizer
         }
     }
     
-    private function doThousands($number) {
-        $hundreds = $number[1] . $number[2] . $number[3];
-        $result = "mil " . $this->doHundreds($hundreds);
-        if ((int)$number[0] > 1) {
-            $result = $this->numbers[(int)$number[0]] . $result;
+    private function doNumber($number) {
+        $num = ltrim($number, "0");
+        switch(strlen($num)) {
+            case 0:
+                return $this->doOnes("0");
+            case 1:
+                return $this->doOnes($num);
+            case 2:
+                return $this->doTens($num);
+            case 3:
+                return $this->doHundreds($num);
         }
-        return $result;
     }
     
     
     protected function toText($number) {
-        if (isset($this->numbers[$number])) {
-            return $this->numbers[$number];
+        if (isset($this->numbers[(int)$number])) {
+            return $this->numbers[(int)$number];
         } else {
-            $num = (string)$number;
-            $len = strlen($num);
-            $answer = "";
-            switch($len) {
-                case 2:
-                    return $this->doTens($num);
-                case 3:
-                    return $this->doHundreds($num);
-                case 4:
-                    $hundreds = $num[$len-3].$num[$len-2].$num[$len-1];
-                    if ($num[0] > 1) {
-                        return $this->doOnes($num[0]) . " mil " . $this->doHundreds($hundreds);
-                    } else {
-                        return "mil " . $this->doHundreds($hundreds);
-                    }
-                case 5:
-                    $hundreds = $num[$len-3].$num[$len-2].$num[$len-1];
-                    return $this->doTens($num[0].$num[1]) . " mil " . $this->doHundreds($hundreds);
-                case 6:
-                    $h1 = $num[$len-3].$num[$len-2].$num[$len-1];
-                    $h2 = $num[0].$num[1].$num[2];
-                    return $this->doHundreds($h2) . " mil " . $this->doHundreds($h1);       
+            //$num = $number;//(string)$number;
+            $len = strlen($number);
+
+            //we want groupings of three starting from the right, so we reverse the string first
+            $groups = str_split(strrev($number), 3);
+            foreach ($groups as $index => $group) {
+                $groups[$index] = strrev($group);
             }
+            print_r($groups);
+                       
+            //now groups contains each set of three, with the highest index the msd
+            //convert each "group" into Spanish longform.
+            $textgroups = array();
+            foreach ($groups as $index => $value) {
+                $textgroups[$index] = $this->doNumber($value);
+            }
+            print_r($textgroups);
+
+            //start with empty string, and concat from msd to lsd. Notice no breaks.
+            //TODO: use a flag to catch the case "dos mil millones", where we have 0 millones
+            $ret = "";
+            $flag = false;
+            switch(count($textgroups)) {
+                case 5:
+                    if ($textgroups[4] != "cero") {                    
+                        if ($textgroups[4] == "uno") {
+                            $ret .= "un billón ";
+                        } else {
+                            $ret .= $textgroups[4] . " billones ";
+                        }
+                    }
+                case 4:
+                    if ($textgroups[3] != "cero") {
+                        $flag = true;
+                        if ($textgroups[3] != "uno") {
+                            $ret .= $textgroups[3] . " ";
+                        }
+                        $ret .= "mil ";
+                    }
+                case 3:
+                    if ($textgroups[2] != "cero") {
+                        if ($textgroups[2] == "uno") {
+                            $ret .= "un millón ";
+                        } else {
+                            $ret .= $textgroups[2] . " millones ";
+                        }
+                    } else {
+                        if ($flag) {
+                            $ret .= " millones ";
+                            $flag = false;
+                        }
+                    }
+
+                case 2:
+                    if ($textgroups[1] != "cero") {
+                        if ($textgroups[1] != "uno") {
+                            $ret .= $textgroups[1] . " ";
+                        }
+                        $ret .= "mil ";
+                    }
+                case 1:
+                    if ($textgroups[0] != "cero") {
+                        $ret .= $textgroups[0];
+                    }
+            }
+            return $ret;
         }
     }
 }

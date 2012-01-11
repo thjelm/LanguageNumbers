@@ -1,5 +1,8 @@
 <html>
-<head><title>Language Numbers</title></head>
+<head>
+<meta charset='utf-8'>
+<title>Language Numbers</title>
+</head>
 <body>
 <h3>Language Numbers</h3>
 <?php 
@@ -19,12 +22,13 @@ $spanish = new SpanishNumberizer();
 if ($_POST) {
     $spanish = new SpanishNumberizer();
     //$japanese = new JapaneseNumberizer();
-    $number = (int)$_POST['number'];
+    $number = $_POST['number']; //(int)$_POST['number'];
     $spanish_number = $spanish->numberToText($number);
     //$japanese_number = $japanese->numberToText($number);
+    
 
     echo "<h3>";
-    echo $number . " = " . $spanish_number . " = " . $japanese_number;
+    echo $number . " = " . $spanish_number;// . " = " . $japanese_number;
     echo "</h3>";
 }?>
 
