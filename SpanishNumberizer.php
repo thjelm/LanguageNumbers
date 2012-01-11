@@ -2,7 +2,6 @@
 
 class SpanishNumberizer extends LanguageNumberizer
 {
-    private $language = "Spanish";
     private $numbers = array("cero","uno","dos","tres","cuatro","cinco","seis","siete","ocho","nueve","diez",
     "once","doce","trece","catorce","quince","dieciséis", "diecisiete", "dieciocho",
     "diecinueve","veinte","veintiuno", "veintidos", "veintitrés", "veinticuatro",
@@ -10,10 +9,10 @@ class SpanishNumberizer extends LanguageNumberizer
     40=>"cuarenta",50=>"cincuenta",60=>"sesenta",70=>"setenta",80=>"ochenta",
     90=>"noventa", 100=>"cien", 500=>"quinientos", 700=>"setecientos", 900=>"novecientos", 1000=>"mil", 1000000=>"un millón");
 
-    protected function getLanguage() {
-        return $this->$language;
+    public function __construct() {
+        $this->language = "Spanish";
+        $this->language_local = "español"; 
     }
-    
     
     /*
      * input: a 1-character string containing a digit "0"-"9"
@@ -108,10 +107,11 @@ class SpanishNumberizer extends LanguageNumberizer
                 $groups[$index] = $this->doNumber(strrev($group));
             }
             
-            // start with empty string, and concat from msd to lsd. Notice no breaks.
-            //
-            // $flag is there to cover cases like 2000000000 "dos mil millones",
-            // where "000" is the set for "millones", yet it must be written.
+            /* start with empty string, and concat from msd to lsd. Notice no breaks.
+             *
+             * $flag is there to cover cases like 2000000000 "dos mil millones",
+             * where "000" is the set for "millones", yet it must be written.
+             */
             $ret = "";
             $flag = false;
             switch(count($groups)) {
